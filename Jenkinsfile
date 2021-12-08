@@ -1,34 +1,21 @@
-// Declarative //
 pipeline {
-    agent any
-
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
+  agent any
+  stages {
+    stage ("Prompt for input") {
+      steps {
+        script {
+          env.USERNAME = input message: 'Please enter the username',
+                             parameters: [string(defaultValue: '',
+                                          description: '',
+                                          name: 'Username')]
+          env.PASSWORD = input message: 'Please enter the password',
+                             parameters: [password(defaultValue: '',
+                                          description: '',
+                                          name: 'Password')]
         }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
-            }
-        }
+        echo "Username: ${env.USERNAME}"
+        echo "Password: ${env.PASSWORD}"
+      }
     }
-}
-// Script //
-node {
-    stage('Build') {
-        echo 'Building....'
-    }
-    stage('Test') {
-        echo 'Building....'
-    }
-    stage('Deploy') {
-        echo 'Deploying....'
-    }
+  }
 }
