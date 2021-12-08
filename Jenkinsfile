@@ -3,9 +3,8 @@ pipeline {
   stages {
     stage ("IP") {
       steps {
-        script {
-
-        }
+    //    script {
+      //  }
         //echo "Username: ${env.USERNAME}"
         echo my.prop=${env.K8S_VM_IP}
         //echo "Password: ${env.PASSWORD}"
