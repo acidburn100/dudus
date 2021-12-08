@@ -1,20 +1,14 @@
 pipeline {
   agent any
   stages {
-    stage ("Prompt for input") {
+    stage ("IP") {
       steps {
         script {
-          env.USERNAME = input message: 'Please enter the username',
-                             parameters: [string(defaultValue: '',
-                                          description: '',
-                                          name: 'Username')]
-          env.PASSWORD = input message: 'Please enter the password',
-                             parameters: [password(defaultValue: '',
-                                          description: '',
-                                          name: 'Password')]
+
         }
-        echo "Username: ${env.USERNAME}"
-        echo "Password: ${env.PASSWORD}"
+        #echo "Username: ${env.USERNAME}"
+        echo my.prop=${env.K8S_VM_IP}
+        #echo "Password: ${env.PASSWORD}"
       }
     }
   }
