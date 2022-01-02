@@ -7,7 +7,7 @@ pipeline {
     //    script {
       //  }
         // echo "${env.K8S_VM_IP}"
-        sh "kubectl get pods"
+        sh 'kubectl get pods'
       }
     }
 
