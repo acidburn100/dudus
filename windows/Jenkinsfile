@@ -10,7 +10,6 @@ pipeline {
         bat 'helm ls -A'
         bat 'helm upgrade -i flaskapp C:/Documents/Task/flaskapp'
         //bat 'sh -x -c "kubectl get pods"'
-        
         bat 'bash -c "kubectl get po | grep flask-deployment- | awk '{print $1}'" > podNameRes'
         podName = readFile('podNameRes').trim()
         bat 'bash -c "kubectl port-forward $podName 5588:5000&" '
