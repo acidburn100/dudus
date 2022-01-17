@@ -14,9 +14,13 @@ pipeline {
  stage("Install helm"){
     steps{
          sh 'sudo snap install helm --classic'
-    }
+    }}
+    
+    
+ stage("Install app"){
+    steps{
+         sh 'helm upgrade -i flaskapp /tmp/flaskapp-0.1.0.tgz'
+    }}
 }
 }
-}
-
 
