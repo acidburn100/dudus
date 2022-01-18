@@ -5,6 +5,7 @@ pipeline {
     stage ("Install kubectl") {
       steps {
         sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
+        sh 'pwd'
         sh 'chmod u+x ./kubectl'  
         sh 'export KUBECONFIG=/home/cloud_user/config'
         sh 'kubectl get pods -A'
@@ -20,7 +21,20 @@ pipeline {
  stage("Install app"){
     steps{
          sh 'helm upgrade -i flaskapp /tmp/flaskapp-0.1.0.tgz'
+         sh 'helm ls -A'
+         sh 'kubectl get pods -A'
     }}
+ 
+ stage("Setting port"){
+    steps{
+        script {
+        //sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes''
+        sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes'
+        podName = readFile('podNameRes').trim()
+        podName
+        sh 'kubectl port-forward ' + podName + ' 31000:5000&'}
+    }}
+    
+         
+    }
 }
-}
-
