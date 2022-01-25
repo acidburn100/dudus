@@ -34,8 +34,9 @@ pipeline {
     
  stage("Install app"){
     steps{
-         // sh 'wget https://github.com/acidburn100/app/blob/main/flaskapp-0.1.0.tgz'
+
          //sh 'helm delete flaskapp'
+         
          sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz'
          script {
          sh 'count=1; while [ `kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
