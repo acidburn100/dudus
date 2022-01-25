@@ -29,7 +29,7 @@ pipeline {
 
  stage("Create helm chart"){
     steps{
-         sh 'helm create flaskapp_helm_files'
+         sh 'helm pack flaskapp_helm_files'
     }}
     
  stage("Install app"){
