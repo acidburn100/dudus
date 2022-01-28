@@ -1,5 +1,13 @@
 
 pipeline {
+    
+    environment { 
+        registry = "dudus/docker-flask-test"
+        folder = "flaskapp/."
+        registryCredential = 'dockerhub_id' 
+        dockerImage = '' 
+    }    
+    
   agent any
   stages {
     stage ("Install kubectl") {
@@ -17,15 +25,33 @@ pipeline {
          sh 'sudo snap install helm --classic'
     }}
 
- stage("Create docker image"){
-    steps{
-         sh 'sudo docker build flaskapp/.'
-    }}
-
-// stage("Push docker image"){
+// stage("Create docker image"){
 //    steps{
-//         sh 'sudo docker push dudus/docker-flask-test'
+         //sh 'sudo docker build flaskapp/.'
+//         sh 'docker build --tag dudus/docker-flask-test flaskapp/.'
 //    }}
+
+
+stage("Building docker image") { 
+
+    steps { 
+
+        script { 
+
+            dockerImage = docker.build (registry , "flaskapp/." )
+            
+        }
+
+    } 
+
+}
+
+
+
+ stage("Push docker image"){
+    steps{
+         sh 'docker push dudus/docker-flask-test'
+    }}
 
  stage("Create helm chart"){
     steps{
@@ -37,10 +63,11 @@ pipeline {
 
          //sh 'helm delete flaskapp'
          
-         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz'
-         script {
-         sh 'count=1; while [ `kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
-         }
+         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait 2m0s'
+//         script {
+//         sh 'count=1; while [ `kubectl get po -o=wide |\ awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
+           // sh 'if '[[ 'helm ls -A | grep flaskapp | wc -l' ]]; then \'helm delete flaskapp\'; else \'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait\';fi'
+//         }
 
          sh 'helm ls -A'
          sh 'kubectl get pods -A'
@@ -58,4 +85,6 @@ pipeline {
     
          
     }
+    
+
 }
