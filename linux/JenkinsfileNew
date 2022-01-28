@@ -32,7 +32,7 @@ pipeline {
 //    }}
 
 
-stage("Building docker image") { 
+stage('Building our image') { 
 
     steps { 
 
@@ -47,11 +47,29 @@ stage("Building docker image") {
 }
 
 
+stage('Push image') { 
 
- stage("Push docker image"){
-    steps{
-         sh 'docker push dudus/docker-flask-test'
-    }}
+    steps { 
+
+        script { 
+
+            docker.withRegistry( '', registryCredential ) { 
+
+                dockerImage.push() 
+
+            }
+
+        } 
+
+    }
+
+} 
+
+
+// stage("Push docker image"){
+//    steps{
+//         sh 'docker push dudus/docker-flask-test'
+//    }}
 
  stage("Create helm chart"){
     steps{
@@ -63,7 +81,7 @@ stage("Building docker image") {
 
          //sh 'helm delete flaskapp'
          
-         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait 2m0s'
+         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
 //         script {
 //         sh 'count=1; while [ `kubectl get po -o=wide |\ awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
            // sh 'if '[[ 'helm ls -A | grep flaskapp | wc -l' ]]; then \'helm delete flaskapp\'; else \'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait\';fi'
