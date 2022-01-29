@@ -81,7 +81,7 @@ stage('Push image') {
 
          //sh 'helm delete flaskapp'
          
-         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
+         sh 'helm delete flaskapp || helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
 //         script {
 //         sh 'count=1; while [ `kubectl get po -o=wide |\ awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
            // sh 'if '[[ 'helm ls -A | grep flaskapp | wc -l' ]]; then \'helm delete flaskapp\'; else \'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait\';fi'
