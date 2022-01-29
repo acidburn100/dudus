@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "App successfully installed"
+    return "App installed successfully!!"
 
 
 if __name__ == "__main__":
