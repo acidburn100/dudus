@@ -78,7 +78,7 @@ stage("Install app"){
         sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes'
         podName = readFile('podNameRes').trim()
         podName
-        sh 'kubectl port-forward ' + podName + ' 31000:5000&'
+        //sh 'kubectl port-forward ' + podName + ' 31000:5000&'
         }
      }
     }   
