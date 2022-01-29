@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: flask
-        image: dudus/docker-flask-:latest
+        image: dudus/docker-flask-test:latest
         ports:
           - containerPort: 5000
