@@ -1,6 +1,7 @@
 
 pipeline {
-    
+  
+
     environment { 
         registry = "dudus/docker-flask-test"
         folder = "flaskapp/."
@@ -9,7 +10,10 @@ pipeline {
     }    
     
   agent any
+  
+
   stages {
+
     stage ("Install kubectl") {
       steps {
         sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
@@ -25,68 +29,45 @@ pipeline {
          sh 'sudo snap install helm --classic'
     }}
 
-// stage("Create docker image"){
-//    steps{
-         //sh 'sudo docker build flaskapp/.'
-//         sh 'docker build --tag dudus/docker-flask-test flaskapp/.'
-//    }}
-
-
-stage('Building our image') { 
-
-    steps { 
-
-        script { 
-
-            dockerImage = docker.build (registry , "flaskapp/." )
-            
+ stage("Delete app"){
+    steps{
+        script {
+         sh 'helm ls -A |  awk NR!=1 | awk \'{print $1}\' > release'
+                 release = readFile('release').trim()
+        if (release != "")
+        sh 'helm delete flaskapp'
         }
+    }}
+      
 
+stage('Building image') { 
+    steps { 
+        script { 
+            dockerImage = docker.build (registry , "flaskapp/." )        
+        }
     } 
-
 }
 
 
 stage('Push image') { 
-
     steps { 
-
         script { 
-
             docker.withRegistry( '', registryCredential ) { 
-
                 dockerImage.push() 
-
             }
-
         } 
-
     }
-
 } 
 
-
-// stage("Push docker image"){
-//    steps{
-//         sh 'docker push dudus/docker-flask-test'
-//    }}
-
- stage("Create helm chart"){
+stage("Create helm chart"){
     steps{
          sh 'helm package flaskapp_helm_files'
     }}
     
- stage("Install app"){
+stage("Install app"){
     steps{
 
-         //sh 'helm delete flaskapp'
-         
-         sh 'helm delete flaskapp || helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
-//         script {
-//         sh 'count=1; while [ `kubectl get po -o=wide |\ awk NR!=1 | awk \'{print $2}\'` != \'1/2\' ] && [ $count -lt 5  ] ; do kubectl get po -o=wide | awk NR!=1 | awk \'{print $2}\';let count++;  done'    
-           // sh 'if '[[ 'helm ls -A | grep flaskapp | wc -l' ]]; then \'helm delete flaskapp\'; else \'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait\';fi'
-//         }
-
+         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
          sh 'helm ls -A'
          sh 'kubectl get pods -A'
     }}
@@ -94,15 +75,12 @@ stage('Push image') {
  stage("Setting port"){
     steps{
         script {
-        //sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes''
         sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes'
         podName = readFile('podNameRes').trim()
         podName
-        sh 'kubectl port-forward ' + podName + ' 31000:5000&'}
-    }}
-    
-         
-    }
-    
-
+        sh 'kubectl port-forward ' + podName + ' 31000:5000&'
+        }
+     }
+    }   
+  }
 }
