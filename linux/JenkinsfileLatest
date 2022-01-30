@@ -1,0 +1,87 @@
+
+pipeline {
+    environment { 
+        registry = "dudus/docker-flask-test"
+        folder = "flaskapp/."
+        registryCredential = 'dockerhub_id' 
+        dockerImage = '' 
+    }    
+    
+agent any
+
+stages {
+    stage ("Install kubectl") {
+      steps {
+        sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
+        sh 'chmod u+x ./kubectl'  
+        sh 'export KUBECONFIG=/home/cloud_user/config'
+        sh 'kubectl get pods -A'
+        sh 'ls'
+      }
+    }
+    
+ stage("Install helm"){
+    steps{
+         sh 'sudo snap install helm --classic'
+    }}
+
+ stage("Delete app"){
+    steps{
+        script {
+         sh 'helm ls -A |  awk NR!=1 | awk \'{print $1}\' > release'
+                 release = readFile('release').trim()
+        if (release != "")
+        sh 'helm delete flaskapp'
+        }
+    }}
+      
+
+stage('Building docker image') { 
+    steps { 
+        script { 
+            dockerImage = docker.build (registry , "flaskapp/." )        
+        }
+    } 
+}
+
+
+stage('Push image') { 
+    steps { 
+        script { 
+            docker.withRegistry( '', registryCredential ) { 
+                dockerImage.push() 
+            }
+        } 
+    }
+} 
+
+stage("Create helm chart"){
+    steps{
+         sh 'helm package flaskapp_helm_files'
+    }}
+    
+stage("Install app"){
+    steps{
+
+         sh 'helm upgrade -i flaskapp flaskapp-0.1.0.tgz --wait --timeout 2m0s'
+         sh 'helm ls -A'
+         sh 'kubectl get pods -A'
+    }}
+
+stage("Verify app installed successfully"){
+    steps{
+        script {
+            sh 'kubectl get nodes --selector=node-role.kubernetes.io/master -o jsonpath=\'{$.items[*].status.addresses[?(@.type=="InternalIP")].address}\' > ip'
+            ip = readFile('ip').trim()
+            //sh 'curl http://' + ip + ':31000 > response'
+            sh 'curl -o /dev/null -s -w "%{http_code}\n" http://' + ip + ':31000 > response'
+            response = readFile('response').trim()
+            if (response != "200")
+                error "FAILED!"
+        }
+    }
+}
+
+
+  }
+}
