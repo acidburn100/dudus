@@ -1,7 +1,5 @@
 
 pipeline {
-  
-
     environment { 
         registry = "dudus/docker-flask-test"
         folder = "flaskapp/."
@@ -9,11 +7,9 @@ pipeline {
         dockerImage = '' 
     }    
     
-  agent any
-  
+agent any
 
-  stages {
-
+stages {
     stage ("Install kubectl") {
       steps {
         sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
@@ -40,7 +36,7 @@ pipeline {
     }}
       
 
-stage('Building image') { 
+stage('Building docker image') { 
     steps { 
         script { 
             dockerImage = docker.build (registry , "flaskapp/." )        
@@ -71,16 +67,21 @@ stage("Install app"){
          sh 'helm ls -A'
          sh 'kubectl get pods -A'
     }}
- 
- stage("Setting port"){
+
+stage("Verify app installed successfully"){
     steps{
         script {
-        sh 'kubectl get po | grep flask-deployment- | awk \'{print $1}\' > podNameRes'
-        podName = readFile('podNameRes').trim()
-        podName
-        //sh 'kubectl port-forward ' + podName + ' 31000:5000&'
+            sh 'kubectl get nodes --selector=node-role.kubernetes.io/master -o jsonpath=\'{$.items[*].status.addresses[?(@.type=="InternalIP")].address}\' > ip'
+            ip = readFile('ip').trim()
+            //sh 'curl http://' + ip + ':31000 > response'
+            sh 'curl -o /dev/null -s -w "%{http_code}\n" http://' + ip + ':31000 > response'
+            response = readFile('response').trim()
+            if (response != "200")
+                error "FAILED!"
         }
-     }
-    }   
+    }
+}
+
+
   }
 }
